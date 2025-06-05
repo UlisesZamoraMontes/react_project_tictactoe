@@ -3,168 +3,77 @@ import './TicTacToe.css';
 import circle_icon from '../assets/circle.png';
 import cross_icon from '../assets/cross.png';
 
-let data = ['', '', '', '', '', '', '', '', ''];
+const WIN_COMBINATIONS = [
+  [0, 1, 2], // Rows
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6], // Columns
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8], // Diagonals
+  [2, 4, 6],
+];
 
 const TicTacToe = () => {
-  let [count, setCount] = useState(0);
-  let [lock, setLock] = useState(false);
-  let titleRef = useRef(null);
-  let box1 = useRef(null);
-  let box2 = useRef(null);
-  let box3 = useRef(null);
-  let box4 = useRef(null);
-  let box5 = useRef(null);
-  let box6 = useRef(null);
-  let box7 = useRef(null);
-  let box8 = useRef(null);
-  let box9 = useRef(null);
 
-  let box_array = [box1, box2, box3, box4, box5, box6, box7, box8, box9];
+  const [board, setBoard] = useState(Array(9).fill(''));
+  const [isXTurn, setIsXTurn] = useState(true);
+  const [winner, setWinner] = useState(null);
 
-  const WIN_COMBINATIONS = [
-    [0, 1, 2], // Rows
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6], // Columns
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8], // Diagonals
-    [2, 4, 6],
-  ];
-  const toggle = (e, num) => {
-    //debugger;
-    if (lock) {
-      return 0;
-    }
-    if (count % 2 === 0) {
-      e.target.innerHTML = `<img src='${cross_icon}'>`;
-      data[num] = 'x';
-      setCount(++count);
-    } else {
-      e.target.innerHTML = `<img src='${circle_icon}'>`;
-      data[num] = 'o';
-      setCount(++count);
-    }
+  const handleClick = (index) =>{
+    debugger;
+    if (board[index] != '' || winner) return;
 
-    checkWin();
-
-    console.log(count, num);
+    const newBoard = [...board];
+    newBoard[index] = isXTurn ? 'x' : 'o';
+    setBoard(newBoard);
+    setIsXTurn(!isXTurn);
+    checkWin(newBoard);
   };
 
-  const checkWin = () => {
+  const checkWin = (board) => {
     for (let combo of WIN_COMBINATIONS) {
       const [a, b, c] = combo;
-      if (data[a] && data[a] === data[b] && data[b] === data[c]) {
-        won(data[a]);
+      if (board[a] && board[a] === board[b] && board[b] === board[c]) {
+        setWinner(board[a]);
         return;
       }
     }
-  };
 
-  const won = (winner) => {
-    setLock(true);
-    if (winner === 'x') {
-      titleRef.current.innerHTML = `Congratulations: <img src=${cross_icon}>`;
-    } else {
-      titleRef.current.innerHTML = `Congratulations: <img src=${circle_icon}>`;
+    //Optional
+    if(!board.includes('')){
+      setWinner('draw');
     }
   };
 
   const reset = () => {
     //debugger;
-    setLock(false);
-    data = ['', '', '', '', '', '', '', '', ''];
-    titleRef.current.innerHTML = 'Tic Tac Toe Game In <span>React</span>';
-    box_array.map((e) => {
-      e.current.innerHTML = '';
-    });
+    setBoard(Array(9).fill(''));
+    setIsXTurn(true);
+    setWinner(null);
   };
+
+  const renderCell = (value, index) =>(
+    <div className='boxes' key={index} onClick={() => handleClick(index)}>
+      {value === 'x' && <img src={cross_icon} alt='X'/>}
+      {value === 'o' && <img src={circle_icon} alt='O'/>}
+    </div>
+  );
 
   return (
     <div className="container">
-      <h1 className="title" ref={titleRef}>
+      <h1 className="title">
         Tic Tac Toe Game In <span>React</span>
       </h1>
       <div className="board">
-        <div className="row1">
-          <div
-            className="boxes"
-            ref={box1}
-            onClick={(e) => {
-              toggle(e, 0);
-            }}
-          ></div>
-          <div
-            className="boxes"
-            ref={box2}
-            onClick={(e) => {
-              toggle(e, 1);
-            }}
-          ></div>
-          <div
-            className="boxes"
-            ref={box3}
-            onClick={(e) => {
-              toggle(e, 2);
-            }}
-          ></div>
-        </div>
-
-        <div className="row2">
-          <div
-            className="boxes"
-            ref={box4}
-            onClick={(e) => {
-              toggle(e, 3);
-            }}
-          ></div>
-          <div
-            className="boxes"
-            ref={box5}
-            onClick={(e) => {
-              toggle(e, 4);
-            }}
-          ></div>
-          <div
-            className="boxes"
-            ref={box6}
-            onClick={(e) => {
-              toggle(e, 5);
-            }}
-          ></div>
-        </div>
-
-        <div className="row3">
-          <div
-            className="boxes"
-            ref={box7}
-            onClick={(e) => {
-              toggle(e, 6);
-            }}
-          ></div>
-          <div
-            className="boxes"
-            ref={box8}
-            onClick={(e) => {
-              toggle(e, 7);
-            }}
-          ></div>
-          <div
-            className="boxes"
-            ref={box9}
-            onClick={(e) => {
-              toggle(e, 8);
-            }}
-          ></div>
-        </div>
+        {board.map((value, index) => renderCell(value, index))}
       </div>
-
-      <button
-        className="reset"
-        onClick={() => {
-          reset();
-        }}
-      >
+      {winner && (
+        <h2 className="result">
+          {winner === 'draw' ? "It's a draw!" : `${winner.toUpperCase()} wins!`}
+        </h2>
+      )}
+      <button className="reset" onClick={reset}>
         Reset
       </button>
     </div>
